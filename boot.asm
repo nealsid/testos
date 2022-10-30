@@ -30,6 +30,8 @@ print_done:
 verify_second_sector_magic:
         cmp word [0x7c00 + 512], 0x55AA
         jnz magic_number_error
+        cmp word [0x7c00 + 1022], 0x55AA
+        jnz magic_number_error
         ret
 
 read_second_sector: 
@@ -73,4 +75,9 @@ second_sector_magic:
         db 0x55
 boot_second_sector:
         db '2nd boot sector', 0
+
+        times 1022 - ($-$$) db 0
+second_sector_endmagic:
+        db 0xAA
+        db 0x5D
 
