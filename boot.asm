@@ -1,6 +1,7 @@
 ; boot.asm
 org 0x7c00
 begin:
+        cli
         mov bx, hello_string
         call write_via_interrupt
 
@@ -12,7 +13,13 @@ begin:
 
         mov bx, boot_second_sector
         call write_via_interrupt
-        jmp done
+
+        lgdt [lgdt_param]
+
+        smsw cx
+        or cx, 1
+        lmsw cx
+        jmp dword 0x7c00:done
 
 write_via_interrupt:
         mov ah, 0xE
@@ -54,13 +61,17 @@ magic_number_error:
         mov bx, sector_magic_incorrect
         call write_via_interrupt
         jmp done
+set_es_ds:
+        mov ax, 0x8
+        mov es, ax
+        mov ds, ax
 done:
         jmp done
 
 hello_string:
-        db 'Hello', 0
+        db 'Hello', 0xa, 0xd, 0
 read_error_string:
-        db 'Read interrupt error', 0
+        db 'Read interrupt error', 0xa, 0xd, 0
 sector_magic_incorrect:
         db 'Second sector magic number invalid', 0
         ;; Pad remainder of this section with null plus 2-byte boot
@@ -74,10 +85,31 @@ second_sector_magic:
         db 0xAA
         db 0x55
 boot_second_sector:
-        db '2nd boot sector', 0
+        db '2nd boot sector', 0xa, 0xd, 0
+
+lgdt_param:
+        db 0x0E, 0x00
+        dd gdt
+
+        dw 0x1234
+align 8
+gdt:
+first_entry:
+        dw 0x0000, 0x0000       ;First entry is unused
+        dw 0x0000, 0x0000
+second_entry:
+        dw 0x0000FFFE
+        dw 0x00FF8000
+        ;; db 0x00                 ; bits 16-20 of base
+        ;; db 0x80                 ; type (unused for system descriptor?)
+        ;;                         ; 1000: present (bit 3), dpl = 1 (bits 2,1), system segment (bit 0)
+        ;; db 0xFF                 ; Upper 4 of segment limit
+        ;;                         ; Granularity, D/B, 64-bit (L), AVL all 1
+        ;; db 0x00                 ; upper 8 of base
+gdt_end:
 
         times 1022 - ($-$$) db 0
 second_sector_endmagic:
         db 0xAA
-        db 0x5D
+        db 0x55
 
