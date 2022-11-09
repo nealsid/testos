@@ -110,9 +110,11 @@ second_entry:
                                 ; granularity & default operation size
                                 ; (32bit) = 1, base 24-31 = 0
 third_entry:
-        dw 0xFFFF               ; same as above
+        dw 0xFFFF               ; same as above, except the segment is
+                                ; read/write, not execute/read (0x9200
+                                ; in 2nd doubleword, not 0x9A00)
         dw 0x0000
-        dw 0x9A00
+        dw 0x9200
         dw 0x00CF
 gdt_end:
 
