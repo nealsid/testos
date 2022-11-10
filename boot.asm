@@ -47,7 +47,7 @@ verify_second_sector_magic:
 
 read_second_sector: 
         mov ah, 0x2             ; Read
-        mov al, 1               ; Sector count
+        mov al, 6              ; Sector count
         mov ch, 0               ; Cylinder
         mov cl, 2               ; Sector #
         mov dh, 0               ; Head
@@ -77,7 +77,7 @@ hello_string:
 read_error_string:
         db 'Read interrupt error', 0xa, 0xd, 0
 sector_magic_incorrect:
-        db 'Second sector magic number invalid', 0
+        db 'Second sector magic number invalid', 0xa, 0xd, 0
         ;; Pad remainder of this section with null plus 2-byte boot
         ;; sector magic number
         times 510-($-$$) db 0
@@ -95,7 +95,6 @@ lgdt_param:
         db 0x17, 0x00
         dd gdt
 
-        dw 0x1234
 align 8
 gdt:
 first_entry:
@@ -120,9 +119,24 @@ gdt_end:
 
         bits 32
 protected_mode:
-        jmp protected_mode
-        times 1022 - ($-$$) db 0
+        lidt [lidt_param]
+protected_mode_loop:
+        jmp protected_mode_loop
+
+        times 1016 - ($-$$) db 0
+
+lidt_param:
+        dw 0X7FF
+        dd idt_start
+
 second_sector_endmagic:
         db 0xAA
         db 0x55
+
+third_sector:                   ;0x8000
+interrupt_handler:
+        iret
+align 8
+idt_start:
+        times 256 dq 0x0
 
