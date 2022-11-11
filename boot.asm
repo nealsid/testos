@@ -80,7 +80,7 @@ sector_magic_incorrect:
         db 'Second sector magic number invalid', 0xa, 0xd, 0
         ;; Pad remainder of this section with null plus 2-byte boot
         ;; sector magic number
-        times 510-($-$$) db 0
+        times 510-($-$$) db 0x90
 
         db 0x55
         db 0xAA
@@ -90,7 +90,7 @@ second_sector_magic:
         db 0x55
 boot_second_sector:
         db '2nd boot sector', 0xa, 0xd, 0
-
+        ;; 0x7e14
 lgdt_param:
         db 0x17, 0x00
         dd gdt
@@ -105,21 +105,30 @@ second_entry:
         dw 0x0000               ; segment base 0-15
         dw 0x9A00               ; base 16-23, followed by type == 1010 (execute/read),and
                                 ; flags = 9 = 1001 for present = 1,dpl=00,code/data = 1
-        dw 0x00CF               ; seg limit 16-19 = 0xF, flags = 1100
-                                ; granularity & default operation size
-                                ; (32bit) = 1, base 24-31 = 0
+        dw 0x00EF               ; seg limit 16-19 = 0xF, flags = 1110
+                                ; granularity, default operation size
+                                ; (32bit), and 64-bit code segment =
+                                ; 1, base 24-31 = 0
 third_entry:
         dw 0xFFFF               ; same as above, except the segment is
                                 ; read/write, not execute/read (0x9200
                                 ; in 2nd doubleword, not 0x9A00)
         dw 0x0000
         dw 0x9200
-        dw 0x00CF
+        dw 0x00EF
 gdt_end:
 
         bits 32
 protected_mode:
+        mov ax, 0x10
+        mov ds, ax
+        mov ss, ax
+        mov ax, 0x0
+        mov es, ax
+        mov fs, ax
+        mov gs, ax
         lidt [lidt_param]
+        sti
 protected_mode_loop:
         jmp protected_mode_loop
 
@@ -138,5 +147,13 @@ interrupt_handler:
         iret
 align 8
 idt_start:
-        times 256 dq 0x0
-
+%rep 256
+        dw 0x8000               ; lower 16 of handler address in segment.
+        dw 0x0008               ; segment selector
+        dw 0x8E00               ; bits 0-8 = 0/reserved, bits 9-11 = 1
+                                ; to indicate interrupt gate as well
+                                ; as 32 bits (bit 11), bits 15-12 are
+                                ; 1000 to indicate present, privilege
+                                ; level 00, and specified to be 0.
+        dw 0x0000               ; upper 16 of handler address offset in segmen.
+%endrep 
