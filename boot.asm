@@ -52,7 +52,7 @@ verify_second_sector_magic:
 
 read_second_sector: 
         mov ah, 0x2             ; Read
-        mov al, 6              ; Sector count
+        mov al, 0x9             ; Sector count
         mov ch, 0               ; Cylinder
         mov cl, 2               ; Sector #
         mov dh, 0               ; Head
@@ -130,9 +130,10 @@ protected_mode:
         mov gs, ax
         lidt [lidt_param]
         sti
+
+        int 0xFF
 protected_mode_loop:
         jmp protected_mode_loop
-
         times 1016 - ($-$$) db 0
 
 lidt_param:
@@ -144,13 +145,17 @@ second_sector_endmagic:
         db 0x55
 
 third_sector:                   ;0x8000
-interrupt_handler:
-        inc dword [0xA000]
+%assign i 0
+%rep 256
+        inc dword [0xA000 + i * 4]
         iret
+%assign i i + 1
+%endrep
 align 8
 idt_start:
+%assign i 0
 %rep 256
-        dw 0x8000               ; lower 16 of handler address in segment.
+        dw 0x8000 + i*7         ; lower 16 of handler address in segment.
         dw 0x0008               ; segment selector
         dw 0x8E00               ; bits 0-8 = 0/reserved, bits 9-11 = 1
                                 ; to indicate interrupt gate as well
@@ -158,4 +163,5 @@ idt_start:
                                 ; 1000 to indicate present, privilege
                                 ; level 00, and specified to be 0.
         dw 0x0000               ; upper 16 of handler address offset in segmen.
-%endrep 
+%assign i i + 1
+%endrep
