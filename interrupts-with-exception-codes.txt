@@ -1,0 +1,8 @@
+8 (always 0)
+10 (segment selector)
+11 (segment selector)
+12 (segment selector or 0)
+13 (segment selector, IDT vector, or 0)
+14
+17
+21

@@ -131,9 +131,10 @@ protected_mode:
         lidt [lidt_param]
         sti
 
-        int 0xFF
+        int 0xFE
 protected_mode_loop:
         jmp protected_mode_loop
+
         times 1016 - ($-$$) db 0
 
 lidt_param:
@@ -148,14 +149,22 @@ third_sector:                   ;0x8000
 %assign i 0
 %rep 256
         inc dword [0xA000 + i * 4]
+%if i = 8 || i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21
+        add esp, 0x20        ; move stack pointer for interrupt
+                             ; handlers that have an exception code
+                             ; pushed onto the stack
+%endif
         iret
 %assign i i + 1
 %endrep
+
 align 8
+
 idt_start:
 %assign i 0
+%assign offset 0
 %rep 256
-        dw 0x8000 + i*7         ; lower 16 of handler address in segment.
+        dw 0x8000 + offset      ; lower 16 of handler address in segment.
         dw 0x0008               ; segment selector
         dw 0x8E00               ; bits 0-8 = 0/reserved, bits 9-11 = 1
                                 ; to indicate interrupt gate as well
@@ -163,5 +172,10 @@ idt_start:
                                 ; 1000 to indicate present, privilege
                                 ; level 00, and specified to be 0.
         dw 0x0000               ; upper 16 of handler address offset in segmen.
+%if i = 8 || i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21
+%assign offset offset + 11
+%else
+%assign offset offset + 7
+%endif
 %assign i i + 1
 %endrep
