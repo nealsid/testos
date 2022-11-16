@@ -1,6 +1,11 @@
 ; boot.asm
 bits 16
-org 0x7c00
+
+; macro meant to be specified on command line,
+; e.g. -DORGSTATEMENT='org 0x7c00'. it is specified as empty
+; for building a binary GDB can read for debugging
+ORGSTATEMENT
+
 begin:
         mov ax, 0
         mov ss, AX
@@ -78,7 +83,7 @@ read_error_string:
         db 'Read interrupt error', 0xa, 0xd, 0
 sector_magic_incorrect:
         db 'Second sector magic number invalid', 0xa, 0xd, 0
-        ;; Pad remainder of this section with null plus 2-byte boot
+        ;; Pad remainder of this section with noop plus 2-byte boot
         ;; sector magic number
         times 510-($-$$) db 0x90
 
@@ -144,6 +149,8 @@ second_sector_endmagic:
 
 third_sector:                   ;0x8000
 interrupt_handler:
+        inc dword [0xA000]
+        sti
         iret
 align 8
 idt_start:
