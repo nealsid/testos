@@ -70,10 +70,6 @@ magic_number_error:
         mov bx, sector_magic_incorrect
         call write_via_interrupt
         jmp done
-set_es_ds:
-        mov ax, 0x8
-        mov es, ax
-        mov ds, ax
 done:
         jmp done
 
@@ -150,7 +146,6 @@ second_sector_endmagic:
 third_sector:                   ;0x8000
 interrupt_handler:
         inc dword [0xA000]
-        sti
         iret
 align 8
 idt_start:
