@@ -132,6 +132,7 @@ protected_mode:
         sti
 
         int 0xFE
+        int 0xFE
 protected_mode_loop:
         jmp protected_mode_loop
 
@@ -173,7 +174,7 @@ idt_start:
                                 ; level 00, and specified to be 0.
         dw 0x0000               ; upper 16 of handler address offset in segmen.
 %if i = 8 || i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21
-%assign offset offset + 11
+%assign offset offset + 10
 %else
 %assign offset offset + 7
 %endif
