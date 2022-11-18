@@ -52,7 +52,7 @@ verify_second_sector_magic:
 
 read_second_sector: 
         mov ah, 0x2             ; Read
-        mov al, 0x9             ; Sector count
+        mov al, 0xD             ; Sector count
         mov ch, 0               ; Cylinder
         mov cl, 2               ; Sector #
         mov dh, 0               ; Head
@@ -106,7 +106,7 @@ second_entry:
         dw 0x0000               ; segment base 0-15
         dw 0x9A00               ; base 16-23, followed by type == 1010 (execute/read),and
                                 ; flags = 9 = 1001 for present = 1,dpl=00,code/data = 1
-        dw 0x00EF               ; seg limit 16-19 = 0xF, flags = 1110
+        dw 0x00CF               ; seg limit 16-19 = 0xF, flags = 1110
                                 ; granularity, default operation size
                                 ; (32bit), and 64-bit code segment =
                                 ; 1, base 24-31 = 0
@@ -116,7 +116,7 @@ third_entry:
                                 ; in 2nd doubleword, not 0x9A00)
         dw 0x0000
         dw 0x9200
-        dw 0x00EF
+        dw 0x00CF
 gdt_end:
 
         bits 32
@@ -130,7 +130,7 @@ protected_mode:
         mov gs, ax
         lidt [lidt_param]
         sti
-
+        
         int 0xFE
         int 0xFE
 protected_mode_loop:
@@ -149,34 +149,31 @@ second_sector_endmagic:
 third_sector:                   ;0x8000
 %assign i 0
 %rep 256
-        inc dword [0xA000 + i * 4]
-%if i = 8 || i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21
-        add esp, 0x20        ; move stack pointer for interrupt
-                             ; handlers that have an exception code
-                             ; pushed onto the stack
+align 16
+ihlabel%[i]:
+        inc dword [0x1A000 + i * 4]
+%if i = 8 || i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21 || i = 254
+        add esp, 0x4        ; move stack pointer for interrupt
+                            ; handlers that have an exception code
+                            ; pushed onto the stack
 %endif
-        iret
+        iretd
 %assign i i + 1
 %endrep
+
 
 align 8
 
 idt_start:
 %assign i 0
-%assign offset 0
 %rep 256
-        dw 0x8000 + offset      ; lower 16 of handler address in segment.
+        dw 0x8000 + 16 * i      ; lower 16 of handler address in segment.
         dw 0x0008               ; segment selector
         dw 0x8E00               ; bits 0-8 = 0/reserved, bits 9-11 = 1
                                 ; to indicate interrupt gate as well
                                 ; as 32 bits (bit 11), bits 15-12 are
                                 ; 1000 to indicate present, privilege
                                 ; level 00, and specified to be 0.
-        dw 0x0000               ; upper 16 of handler address offset in segmen.
-%if i = 8 || i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21
-%assign offset offset + 10
-%else
-%assign offset offset + 7
-%endif
+        dw 0x0000               ; upper 16 of handler address offset in segment.
 %assign i i + 1
 %endrep
