@@ -128,12 +128,14 @@ protected_mode:
         mov es, ax
         mov fs, ax
         mov gs, ax
+        mov cx, 0
+        lldt cx
         lidt [lidt_param]
+        mov dword [0x1C000], 0
         sti
-        
-        int 0xFE
-        int 0xFE
+
 protected_mode_loop:
+        inc dword [0x1C000]
         jmp protected_mode_loop
 
         times 1016 - ($-$$) db 0
@@ -152,7 +154,7 @@ third_sector:                   ;0x8000
 align 16
 ihlabel%[i]:
         inc dword [0x1A000 + i * 4]
-%if i = 8 || i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21 || i = 254
+%if i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21
         add esp, 0x4        ; move stack pointer for interrupt
                             ; handlers that have an exception code
                             ; pushed onto the stack
