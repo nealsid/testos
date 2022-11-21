@@ -149,20 +149,32 @@ second_sector_endmagic:
         db 0x55
 
 third_sector:                   ;0x8000
-%assign i 0
-%rep 256
-align 16
-ihlabel%[i]:
-        inc dword [0x1A000 + i * 4]
-%if i = 10 || i = 11 || i = 12 || i = 13 || i = 14 || i = 17 || i = 21
+%macro interrupt_handler 1
+ihlabel%[%1]:
+        inc dword [0x1A000 + %1 * 4]
+%if %1 = 8 || %1 = 10 || %1 = 11 || %1 = 12 || %1 = 13 || %1 = 14 || %1 = 17 || %1 = 21
+%if %1 = 8
+        ; Interrupt 8 (timer) might be signalled spuriously by the
+        ; BIOS after re-enabling interrupts in protected mode, so test
+        ; for this case by seeing if 0 has been pushed on the stack,
+        ; which is the error code for the doublefault interrupt 8.
+        cmp dword [esp],0
+        jnz %%endinterrupt
+%endif
         add esp, 0x4        ; move stack pointer for interrupt
                             ; handlers that have an exception code
                             ; pushed onto the stack
+%%endinterrupt:
 %endif
         iretd
+%endmacro
+
+%assign i 0
+%rep 256
+align 16
+interrupt_handler %[i]
 %assign i i + 1
 %endrep
-
 
 align 8
 
