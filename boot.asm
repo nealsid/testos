@@ -52,7 +52,7 @@ verify_second_sector_magic:
 
 read_second_sector: 
         mov ah, 0x2             ; Read
-        mov al, 0xD             ; Sector count
+        mov al, 0x16            ; Sector count
         mov ch, 0               ; Cylinder
         mov cl, 2               ; Sector #
         mov dh, 0               ; Head
@@ -128,15 +128,11 @@ protected_mode:
         mov es, ax
         mov fs, ax
         mov gs, ax
-        mov cx, 0
-        lldt cx
         lidt [lidt_param]
-        mov dword [0x1C000], 0
         sti
 
 protected_mode_loop:
-        inc dword [0x1C000]
-        jmp protected_mode_loop
+        jmp 0xA7C8              ; figure out some way to not hardcode this
 
         times 1016 - ($-$$) db 0
 
