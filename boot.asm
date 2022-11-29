@@ -23,6 +23,7 @@ begin:
         mov bx, boot_second_sector
         call write_via_interrupt
 
+        call generate_physical_memory_map
         cli
         lgdt [lgdt_param]
         smsw cx
@@ -50,7 +51,7 @@ verify_second_sector_magic:
         jnz magic_number_error
         ret
 
-read_second_sector: 
+read_second_sector:
         mov ah, 0x2             ; Read
         mov al, 0x16            ; Sector count
         mov ch, 0               ; Cylinder
@@ -66,19 +67,47 @@ read_error:
         mov bx,read_error_string
         call write_via_interrupt
         jmp done
+
 magic_number_error:
         mov bx, sector_magic_incorrect
         call write_via_interrupt
         jmp done
+
+generate_physical_memory_map:
+        mov edi, 0x9000
+        mov ebx, 0
+
+generate_physical_memory_map_start:
+        mov eax, 0x0000E820
+        mov ecx, 24
+        mov edx, 0x534D4150
+
+        clc
+        int 0x15
+        jc generate_physical_memory_map_done
+        cmp ebx, 0
+        jz generate_physical_memory_map_done
+        cmp eax, 0x534D4150
+        jnz generate_physical_memory_map_done_error
+        add edi, ecx
+        jmp generate_physical_memory_map_start
+generate_physical_memory_map_done_error:
+        ret
+generate_physical_memory_map_done:
+        ret
+
 done:
         jmp done
 
 hello_string:
         db 'Hello', 0xa, 0xd, 0
+
 read_error_string:
         db 'Read interrupt error', 0xa, 0xd, 0
+
 sector_magic_incorrect:
         db 'Second sector magic number invalid', 0xa, 0xd, 0
+
         ;; Pad remainder of this section with noop plus 2-byte boot
         ;; sector magic number
         times 510-($-$$) db 0x90
@@ -86,6 +115,7 @@ sector_magic_incorrect:
         db 0x55
         db 0xAA
 
+;;; Sector after boot sector.
 second_sector_magic:
         db 0xAA
         db 0x55
@@ -132,7 +162,7 @@ protected_mode:
         sti
 
 protected_mode_loop:
-        jmp 0xA7C8              ; figure out some way to not hardcode this
+        jmp 0xA7B8              ; figure out some way to not hardcode this
 
         times 1016 - ($-$$) db 0
 
