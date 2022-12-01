@@ -10,7 +10,7 @@ define dump-interrupt-counters
   x /256wx 0x1A000
 end
 
-display /i $pc
+display /5i $pc
 
 break *0x7c00
 cont

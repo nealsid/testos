@@ -11,7 +11,7 @@ begin:
         mov ss, AX
         mov sp, 0x7C00
 
-        mov bx, hello_string
+        push hello_string
         call write_via_interrupt
 
         mov byte [0x7c00 + 512], 0x00
@@ -20,7 +20,7 @@ begin:
 
         call verify_second_sector_magic
 
-        mov bx, boot_second_sector
+        push boot_second_sector
         call write_via_interrupt
 
         call generate_physical_memory_map
@@ -33,6 +33,7 @@ begin:
 
 write_via_interrupt:
         mov ah, 0xE
+        mov word bx, [esp + 2]
         ;; index
 print_start:
         cmp byte [bx], 0
@@ -64,18 +65,19 @@ read_second_sector:
         ret
 
 read_error:
-        mov bx,read_error_string
+        push read_error_string
         call write_via_interrupt
         jmp done
 
 magic_number_error:
-        mov bx, sector_magic_incorrect
+        push sector_magic_incorrect
         call write_via_interrupt
         jmp done
 
 generate_physical_memory_map:
-        mov edi, 0x9000
+        mov edi, 0x5000
         mov ebx, 0
+        mov dword [0x6000], 1
 
 generate_physical_memory_map_start:
         mov eax, 0x0000E820
@@ -89,6 +91,7 @@ generate_physical_memory_map_start:
         jz generate_physical_memory_map_done
         cmp eax, 0x534D4150
         jnz generate_physical_memory_map_done_error
+        inc dword [0x6000]
         add edi, ecx
         jmp generate_physical_memory_map_start
 generate_physical_memory_map_done_error:
@@ -162,7 +165,9 @@ protected_mode:
         sti
 
 protected_mode_loop:
-        jmp 0xA7B8              ; figure out some way to not hardcode this
+        push 0x5000         ; address of physical memory map
+        mov byte [0xb8000], '5'
+        jmp 0xA748              ; figure out some way to not hardcode this
 
         times 1016 - ($-$$) db 0
 
