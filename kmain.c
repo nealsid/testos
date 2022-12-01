@@ -16,6 +16,7 @@ void displayStr(char * const str) {
     displayBuffer++;
     *displayBuffer = 0x07; // grey on black
     displayBuffer++;
+    ch++;
   }
 }
 
