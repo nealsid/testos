@@ -167,7 +167,7 @@ protected_mode:
 protected_mode_loop:
         push 0x5000         ; address of physical memory map
         mov byte [0xb8000], '5'
-        jmp 0xA748              ; figure out some way to not hardcode this
+        jmp KERNEL_C_JUMP_TARGET ; defined on command line
 
         times 1016 - ($-$$) db 0
 
