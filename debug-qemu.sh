@@ -1,2 +1,2 @@
 #!/bin/bash
-../qemu/build/qemu-system-x86_64 diskimage -S -s -nographic
+../qemu/build/qemu-system-x86_64 diskimage -S -s 

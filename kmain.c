@@ -1,15 +1,16 @@
 
 void foo();
 
-void displayStr(char* const);
+void displayStr(const char*);
 
 void kernel_main(void *phys_memory_map) {
-  displayStr("Hello");
+  *(char*)0xB8000 = '2';
+  displayStr("hello");
   foo();
 }
 
-void displayStr(char * const str) {
-  char* ch = str;
+void displayStr(const char * str) {
+  const char* ch = str;
   char* displayBuffer = (char*)0xB8000;
   while (*ch != '\0') {
     *displayBuffer = *ch;

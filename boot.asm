@@ -54,7 +54,7 @@ verify_second_sector_magic:
 
 read_second_sector:
         mov ah, 0x2             ; Read
-        mov al, 0x16            ; Sector count
+        mov al, 0x2E            ; Sector count
         mov ch, 0               ; Cylinder
         mov cl, 2               ; Sector #
         mov dh, 0               ; Head
@@ -166,7 +166,6 @@ protected_mode:
 
 protected_mode_loop:
         push 0x5000         ; address of physical memory map
-        mov byte [0xb8000], '5'
         jmp KERNEL_C_JUMP_TARGET ; defined on command line
 
         times 1016 - ($-$$) db 0
