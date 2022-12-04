@@ -3,7 +3,6 @@ char* currentVideoDisplayPosition = (char*)0xB8000;
 const unsigned int COLUMNS = 80;
 const unsigned int LINES = 25;
 char* baseVideoLimit = (char*)0xB8000 + COLUMNS*LINES*2;
-char *videoMemoryPosition = (char*)0xB8000;
 
 unsigned int getLineNumber() {
   unsigned int lineNumber =
@@ -18,11 +17,11 @@ int getColumnNumber() {
 }
 
 void incrementLine() {
-  videoMemoryPosition += COLUMNS * 2;
+  currentVideoDisplayPosition += COLUMNS * 2;
 }
 
 void incrementColumn() {
-  videoMemoryPosition += 2;
+  currentVideoDisplayPosition += 2;
 }
 
 void clearDisplay() {
@@ -36,6 +35,7 @@ void displayString(const char* formatString) {
   while (*ch != '\0') {
     if (*ch == '\n') {
       incrementLine();
+      ch++;
       continue;
     }
     *currentVideoDisplayPosition = *ch;
