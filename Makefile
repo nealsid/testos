@@ -6,11 +6,14 @@ LDOPTS=-e _kernel_main -segaddr __TEXT $(KERNEL_BINARY_TEXT_SEGMENT_ADDRESS) \
 	-pagezero_size 0 -S -static -no_function_starts
 BOOT_SECTOR_SIZE=1BF8
 
-kmain.kernel: kmain.o
+kmain.kernel: kmain.o logger.o
 	$(LD) $(LDOPTS) -o $@ $^
 
 kmain.o: kmain.c
 	$(CC) -o $@ -c kmain.c $(COPTS)
+
+logger.o: logger.c
+	$(CC) -o $@ -c logger.c $(COPTS)
 
 .PHONY : clean bootsector calculate_c_jump_target
 
