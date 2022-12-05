@@ -4,7 +4,7 @@ void foo();
 
 void kernel_main(void *phys_memory_map) {
   clearDisplay();
-  displayString("hello\nhello");
+  displayString("hello\nhello %d", 1234);
   foo();
 }
 

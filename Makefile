@@ -1,6 +1,6 @@
 CC:=clang
 LD:=ld
-COPTS:=-O0 -ffreestanding -m32
+COPTS:=-O0 -ffreestanding -m32 -fno-stack-protector
 KERNEL_BINARY_TEXT_SEGMENT_ADDRESS:=C000
 LDOPTS=-e _kernel_main -segaddr __TEXT $(KERNEL_BINARY_TEXT_SEGMENT_ADDRESS) \
 	-pagezero_size 0 -S -static -no_function_starts

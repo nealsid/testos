@@ -1,3 +1,5 @@
+#include <stdarg.h>
+
 char* baseVideoMemory = (char*)0xB8000;
 char* currentVideoDisplayPosition = (char*)0xB8000;
 const unsigned int COLUMNS = 80;
@@ -30,13 +32,68 @@ void clearDisplay() {
   }
 }
 
-void displayString(const char* formatString) {
+/* unsigned int countFormatSpecifiers(const char* formatString) { */
+/*   int specifiers = 0; */
+/*   const char* ch = formatString; */
+/*   while (*ch != '\0') { */
+/*     if (*ch == '%' && *(ch + 1) != '\0' && *(ch + 1) != '%') { */
+/*       specifiers++; */
+/*     } */
+/*   } */
+/*   return specifiers; */
+/* } */
+
+int powersOf10[] = {
+  1,
+  10,
+  100,
+  1000,
+  10000,
+  100000,
+  1000000,
+  10000000,
+  100000000,
+  1000000000
+};
+
+
+void convertIntToString(int arg, char* buffer) {
+  buffer[0] = '9';
+  buffer[1] = '8';
+  buffer[2] = '7';
+  buffer[3] = '\0';
+}
+
+
+void displayString(const char* formatString, ...) {
   const char* ch = formatString;
+  va_list args;
+  char buffer[81];
+  //  unsigned int count = countFormatSpecifiers(formatString);
+
+  va_start(args, formatString);
   while (*ch != '\0') {
     if (*ch == '\n') {
       incrementLine();
       ch++;
       continue;
+    }
+
+    if (*ch == '%') {
+      if (*(ch + 1) != '\0' && *(ch + 1) == 'd') {
+        int arg = va_arg(args, int);
+        convertIntToString(arg, buffer);
+        char* bufPtr = buffer;
+        while (*bufPtr != '\0') {
+          *currentVideoDisplayPosition = *bufPtr;
+          currentVideoDisplayPosition++;
+          *currentVideoDisplayPosition = 0x7;
+          currentVideoDisplayPosition++;
+          bufPtr++;
+        }
+        ch += 2; // skip percent and specifier
+        continue;
+      }
     }
     *currentVideoDisplayPosition = *ch;
     currentVideoDisplayPosition++;
