@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stdbool.h>
 
 char* baseVideoMemory = (char*)0xB8000;
 char* currentVideoDisplayPosition = (char*)0xB8000;
@@ -43,27 +44,53 @@ void clearDisplay() {
 /*   return specifiers; */
 /* } */
 
-int powersOf10[] = {
-  1,
-  10,
-  100,
-  1000,
-  10000,
-  100000,
-  1000000,
-  10000000,
-  100000000,
-  1000000000
+int powersOf16[] = {
+  0x10000000,
+  0x1000000,
+  0x100000,
+  0x100000,
+  0x10000,
+  0x1000,
+  0x100,
+  0x10,
+  0x1
 };
 
+int powersOf10[] = {
+  1000000000,
+  100000000,
+  10000000,
+  1000000,
+  100000,
+  10000,
+  1000,
+  100,
+  10,
+  1
+};
 
-void convertIntToString(int arg, char* buffer) {
-  buffer[0] = '9';
-  buffer[1] = '8';
-  buffer[2] = '7';
-  buffer[3] = '\0';
+void convertIntToString(int arg, char* buffer, int* powersOfBaseArray) {
+  int powerOfBase;
+  bool leadingZero = true;
+  do {
+    powerOfBase = *powersOfBaseArray++;
+
+    if (powerOfBase > arg) {
+      if (!leadingZero) {
+        *buffer++ = '0';
+      }
+      if (powerOfBase == 1) {
+        break;
+      }
+      continue;
+    }
+    int multiple = arg / powerOfBase;
+    *buffer++ = multiple + '0';
+    arg -= multiple * powerOfBase;
+    leadingZero = false;
+  } while(powerOfBase != 1);
+  *buffer = '\0';
 }
-
 
 void displayString(const char* formatString, ...) {
   const char* ch = formatString;
@@ -80,19 +107,23 @@ void displayString(const char* formatString, ...) {
     }
 
     if (*ch == '%') {
-      if (*(ch + 1) != '\0' && *(ch + 1) == 'd') {
-        int arg = va_arg(args, int);
-        convertIntToString(arg, buffer);
-        char* bufPtr = buffer;
-        while (*bufPtr != '\0') {
-          *currentVideoDisplayPosition = *bufPtr;
-          currentVideoDisplayPosition++;
-          *currentVideoDisplayPosition = 0x7;
-          currentVideoDisplayPosition++;
-          bufPtr++;
+      if (*(ch + 1) != '\0') {
+        char fmtSpecifier = *(ch + 1);
+        if (fmtSpecifier == 'd' ||
+            fmtSpecifier == 'x') {
+          int arg = va_arg(args, int);
+          convertIntToString(arg, buffer,
+                             fmtSpecifier == 'd' ? powersOf10 : powersOf16);
+          char* bufPtr = buffer;
+          while (*bufPtr != '\0') {
+            *currentVideoDisplayPosition = *bufPtr++;
+            currentVideoDisplayPosition++;
+            *currentVideoDisplayPosition = 0x7;
+            currentVideoDisplayPosition++;
+          }
+          ch += 2; // skip percent and specifier
+          continue;
         }
-        ch += 2; // skip percent and specifier
-        continue;
       }
     }
     *currentVideoDisplayPosition = *ch;
@@ -101,4 +132,5 @@ void displayString(const char* formatString, ...) {
     currentVideoDisplayPosition++;
     ch++;
   };
+  va_end(args);
 }
