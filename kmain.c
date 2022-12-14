@@ -2,9 +2,23 @@
 
 void foo();
 
-void kernel_main(void *phys_memory_map) {
+struct physical_map_entry {
+  long base_lower4;
+  long base_upper4;
+  long length_lower4;
+  long length_upper4;
+  int region_type;
+};
+
+void kernel_main(int map_count,
+                 struct physical_map_entry *phys_memory_map) {
   clearDisplay();
-  displayString("%d", 12345);
+
+  displayString("Map of physical memory (%d entries):\n", map_count);
+  displayString("Sizeof struct: %d\n", sizeof(struct physical_map_entry));
+  for(int i = 0; i < map_count; ++i) {
+    displayString("0x%x\n", phys_memory_map[i].length_lower4);
+  }
   displayString("\n0x%x", 12345);
   foo();
 }

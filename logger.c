@@ -21,6 +21,7 @@ int getColumnNumber() {
 
 void incrementLine() {
   currentVideoDisplayPosition += COLUMNS * 2;
+  currentVideoDisplayPosition -= (currentVideoDisplayPosition - baseVideoMemory) % (COLUMNS * 2);
 }
 
 void incrementColumn() {
@@ -32,17 +33,6 @@ void clearDisplay() {
     *(baseVideoMemory + i) = 0;
   }
 }
-
-/* unsigned int countFormatSpecifiers(const char* formatString) { */
-/*   int specifiers = 0; */
-/*   const char* ch = formatString; */
-/*   while (*ch != '\0') { */
-/*     if (*ch == '%' && *(ch + 1) != '\0' && *(ch + 1) != '%') { */
-/*       specifiers++; */
-/*     } */
-/*   } */
-/*   return specifiers; */
-/* } */
 
 int powersOf16[] = {
   0x10000000,
@@ -71,6 +61,14 @@ int powersOf10[] = {
 void convertIntToString(int arg, char* buffer, int* powersOfBaseArray) {
   int powerOfBase;
   bool leadingZero = true;
+  if (arg == 0) {
+    buffer[0] = '0';
+    buffer[1] = '0';
+    buffer[2] = '0';
+    buffer[3] = '0';
+    buffer[4] = '\0';
+    return;
+  }
   do {
     powerOfBase = *powersOfBaseArray++;
 

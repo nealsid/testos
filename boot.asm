@@ -77,7 +77,7 @@ magic_number_error:
 generate_physical_memory_map:
         mov edi, 0x5000
         mov ebx, 0
-        mov dword [0x6000], 1
+        mov dword [0x6000], 0
 
 generate_physical_memory_map_start:
         mov eax, 0x0000E820
@@ -165,6 +165,7 @@ protected_mode:
         sti
 
 protected_mode_loop:
+        push dword [0x6000]
         push 0x5000         ; address of physical memory map
         jmp KERNEL_C_JUMP_TARGET ; defined on command line
 

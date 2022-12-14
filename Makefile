@@ -1,19 +1,19 @@
-CC:=clang
-LD:=ld
+CC:=/usr/local/Cellar/gcc/12.2.0/bin/gcc-12
+LD:=/usr/local/Cellar/x86_64-elf-binutils/2.39/x86_64-elf/bin/ld
 COPTS:=-O0 -ffreestanding -m32 -fno-stack-protector
 KERNEL_BINARY_TEXT_SEGMENT_ADDRESS:=C000
-LDOPTS=-e _kernel_main -segaddr __TEXT $(KERNEL_BINARY_TEXT_SEGMENT_ADDRESS) \
-	-pagezero_size 0  -static -no_function_starts
+LDOPTS=-e _kernel_main 
+
 BOOT_SECTOR_SIZE=1BF8
 
 kmain.kernel: kmain.o logger.o
 	$(LD) $(LDOPTS) -o $@ $^
 
 kmain.o: kmain.c
-	$(CC) -o $@ -c kmain.c $(COPTS)
+	$(CC) -g -o $@ -c kmain.c $(COPTS)
 
 logger.o: logger.c
-	$(CC) -o $@ -c logger.c $(COPTS)
+	$(CC) -g -o $@ -c logger.c $(COPTS)
 
 .PHONY : clean bootsector
 
@@ -29,4 +29,4 @@ diskimage: boot.bin kmain.kernel
 	cat $^ > diskimage
 
 clean:
-	-rm kmain.o kmain.kernel boot.bin boot.mach-o
+	-rm kmain.kernel boot.bin boot.mach-o *.o
