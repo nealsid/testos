@@ -1,8 +1,9 @@
-CC:=/usr/local/Cellar/gcc/12.2.0/bin/gcc-12
-LD:=/usr/local/Cellar/x86_64-elf-binutils/2.39/x86_64-elf/bin/ld
+CC:=clang
+LD:=ld
 COPTS:=-O0 -ffreestanding -m32 -fno-stack-protector
 KERNEL_BINARY_TEXT_SEGMENT_ADDRESS:=C000
-LDOPTS=-e _kernel_main 
+LDOPTS=-e _kernel_main -segaddr __TEXT $(KERNEL_BINARY_TEXT_SEGMENT_ADDRESS) \
+	-pagezero_size 0  -static -no_function_starts
 
 BOOT_SECTOR_SIZE=1BF8
 
