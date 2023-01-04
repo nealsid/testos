@@ -165,8 +165,10 @@ protected_mode:
         sti
 
 protected_mode_loop:
-        push dword [0x6000]
         push 0x5000         ; address of physical memory map
+        push dword [0x6000]
+        push 0x0            ; not actually used, but we're calling a
+                            ; cdecl function
         jmp KERNEL_C_JUMP_TARGET ; defined on command line
 
         times 1016 - ($-$$) db 0
