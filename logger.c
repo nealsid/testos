@@ -82,7 +82,7 @@ void convertIntToString(int arg, char* buffer, int* powersOfBaseArray) {
       continue;
     }
     int multiple = arg / powerOfBase;
-    *buffer++ = multiple + '0';
+    *buffer++ = multiple + (multiple > 9 ? 7 : 0) + '0';
     arg -= multiple * powerOfBase;
     leadingZero = false;
   } while(powerOfBase != 1);
